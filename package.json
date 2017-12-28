@@ -1,0 +1,14 @@
+{
+  "name": "gen2aw",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test/run.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jscodeshift": "^0.3.32"
+  }
+}
