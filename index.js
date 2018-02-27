@@ -15,51 +15,7 @@ const buildAwaitExpression = j => (yi) => {
     const cor = coroutineYield.callee.property;
     if (prom && cor && prom.name === 'Promise' && cor.name === 'coroutine') {
       const coroutined = coroutineYield.arguments[0];
-      let memberExpression;
-      if (coroutined.callee) {
-        const object = coroutined.callee.object;
-        const property = coroutined.callee.property;
-        if (object.type === 'MemberExpression') {
-          if (object.object.type === 'ThisExpression') {
-            memberExpression = j.memberExpression(
-              j.identifier('this'),
-              j.identifier(object.property.name),
-            );
-          } else if (!object.object.type === 'MemberExpression') {
-            memberExpression = j.memberExpression(
-              j.identifier(object.object.name),
-              j.identifier(object.property.name),
-            );
-          } else {
-            memberExpression = object.object;
-          }
-        } else if (property.name !== 'bind') {
-          memberExpression = j.memberExpression(
-            j.identifier(object.name),
-            j.identifier(property.name),
-          );
-        } else {
-          memberExpression = j.identifier(object.name);
-        }
-        argument = j.callExpression(memberExpression, argument.arguments);
-      } else if (coroutined.type === 'Identifier') {
-        memberExpression = j.identifier(coroutined.name);
-      } else {
-        const object = coroutined.object;
-        const property = coroutined.property;
-        if (object.type === 'MemberExpression') {
-          memberExpression = j.memberExpression(
-            j.identifier(object.object.name),
-            j.identifier(object.property.name),
-          );
-        } else {
-          memberExpression = j.memberExpression(
-            j.identifier(object.name),
-            j.identifier(property.name),
-          );
-        }
-        argument = j.callExpression(memberExpression, argument.arguments);
-      }
+      argument = j.callExpression(coroutined, argument.arguments);
     }
   }
   const awaitExpression = j.awaitExpression(argument);
@@ -85,12 +41,12 @@ module.exports = function(file, api, options) {
     // remove all "use strict" statements
     // root.find(j.FunctionDeclaration, { kind: 'var' })
 	root.find(j.FunctionDeclaration, { generator: true }).forEach(transformToAsyncAwait(j));
-    root.find(j.FunctionExpression, { generator: true }).forEach(transformToAsyncAwait(j));
-    root.find(j.MethodDefinition, { generator: true }).forEach(transformToAsyncAwait(j));
-    root
-    .find(j.CallExpression, {
-      callee: { object: { name: 'Promise' }, property: { name: 'coroutine' } },
-    })
-    .replaceWith(transformToSimpleCall);
+  root.find(j.FunctionExpression, { generator: true }).forEach(transformToAsyncAwait(j));
+  root.find(j.MethodDefinition, { generator: true }).forEach(transformToAsyncAwait(j));
+  root
+  .find(j.CallExpression, {
+    callee: { object: { name: 'Promise' }, property: { name: 'coroutine' } },
+  })
+  .replaceWith(transformToSimpleCall);
 	return root.toSource();
 };
